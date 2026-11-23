@@ -1,0 +1,5 @@
+/* Global styles. Design tokens and base component styles arrive with the
+   design system (roadmap Phase 1, task 3). */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

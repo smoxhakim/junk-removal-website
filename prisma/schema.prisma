@@ -1,0 +1,398 @@
+// Prisma schema — see ARCHITECTURE.md "Data model" for full field rationale.
+// TODO: flesh out indexes, cascading deletes, and additional constraints per phase.
+
+// Prisma 7: the client is generated into src/generated/prisma (gitignored) and
+// connects through the node-postgres driver adapter (see src/lib/prisma.ts).
+// Connection URLs live in prisma.config.ts (CLI) and DATABASE_URL (runtime).
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model BusinessProfile {
+  id                     String   @id @default(uuid())
+  name                   String
+  phone                  String
+  email                  String
+  address                String
+  city                   String
+  state                  String
+  zip                    String
+  hours                  Json
+  licenseNumber          String?
+  insuranceInfo          String?
+  yearsInBusiness        Int?
+  guarantees             String[]
+  paymentMethodsAccepted String[]
+  googleBusinessProfileId String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model Service {
+  id               String   @id @default(uuid())
+  slug             String   @unique
+  name             String
+  shortDescription String
+  longDescription  String
+  processSteps     Json
+  pricingGuidance  String?
+  heroImage        String?
+  isActive         Boolean  @default(true)
+  metaTitle        String?
+  metaDescription  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  locationServicePages LocationServicePage[]
+  pricingRules         PricingRule[]
+  leads                QuoteRequest[]
+  reviews              Review[]
+  galleryPhotos        GalleryPhoto[]
+}
+
+model ServiceArea {
+  id               String   @id @default(uuid())
+  slug             String   @unique
+  name             String
+  state            String
+  county           String?
+  zipCodes         String[]
+  lat              Float?
+  lng              Float?
+  heroImage        String?
+  introContent     String?
+  localProofPoints Json?
+  geoShape         Json?
+  isActive         Boolean  @default(false)
+  isIndexable      Boolean  @default(false)
+  metaTitle        String?
+  metaDescription  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  locationServicePages LocationServicePage[]
+  leads                QuoteRequest[]
+  reviews              Review[]
+  galleryPhotos        GalleryPhoto[]
+}
+
+model LocationServicePage {
+  id              String      @id @default(uuid())
+  locationId      String
+  serviceId       String
+  uniqueIntro     String
+  isActive        Boolean     @default(false)
+  metaTitle       String?
+  metaDescription String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  location ServiceArea @relation(fields: [locationId], references: [id])
+  service  Service     @relation(fields: [serviceId], references: [id])
+
+  @@unique([locationId, serviceId])
+}
+
+model PricingRule {
+  id             String   @id @default(uuid())
+  serviceId      String
+  label          String
+  volumeFraction Float
+  basePrice      Decimal
+  notes          String?
+  order          Int      @default(0)
+
+  service Service @relation(fields: [serviceId], references: [id])
+}
+
+enum LeadStatus {
+  new
+  contacted
+  quoted
+  booked
+  lost
+}
+
+enum LeadSource {
+  organic
+  gbp
+  ads
+  direct
+  referral
+  direct_mail
+}
+
+model QuoteRequest {
+  id                    String      @id @default(uuid())
+  name                  String
+  phone                 String
+  email                 String?
+  address                String?
+  zip                   String
+  serviceId             String?
+  locationId            String?
+  description           String?
+  estimatedPriceMin     Decimal?
+  estimatedPriceMax     Decimal?
+  status                LeadStatus  @default(new)
+  source                LeadSource  @default(direct)
+  utmSource             String?
+  utmMedium             String?
+  utmCampaign           String?
+  utmTerm               String?
+  utmContent            String?
+  callTrackingNumberId  String?
+  assignedAdminId       String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  service       Service?      @relation(fields: [serviceId], references: [id])
+  location      ServiceArea?  @relation(fields: [locationId], references: [id])
+  photos        LeadPhoto[]
+  notes         LeadNote[]
+  statusHistory LeadStatusHistory[]
+  reviews       Review[]
+  reviewRequest ReviewRequest?
+  webhookLogs   WebhookLog[]
+}
+
+model LeadPhoto {
+  id         String   @id @default(uuid())
+  leadId     String
+  url        String
+  storageKey String
+  createdAt  DateTime @default(now())
+
+  lead QuoteRequest @relation(fields: [leadId], references: [id])
+}
+
+model LeadNote {
+  id          String   @id @default(uuid())
+  leadId      String
+  adminUserId String
+  note        String
+  createdAt   DateTime @default(now())
+
+  lead      QuoteRequest @relation(fields: [leadId], references: [id])
+  adminUser AdminUser    @relation(fields: [adminUserId], references: [id])
+}
+
+model LeadStatusHistory {
+  id        String     @id @default(uuid())
+  leadId    String
+  oldStatus LeadStatus
+  newStatus LeadStatus
+  changedBy String
+  createdAt DateTime   @default(now())
+
+  lead QuoteRequest @relation(fields: [leadId], references: [id])
+}
+
+enum ReviewSource {
+  manual
+  google
+  review_request_flow
+}
+
+model Review {
+  id          String       @id @default(uuid())
+  authorName  String
+  rating      Int
+  text        String
+  source      ReviewSource @default(manual)
+  serviceId   String?
+  locationId  String?
+  jobLeadId   String?
+  photoUrl    String?
+  isApproved  Boolean      @default(false)
+  isPublished Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  service  Service?      @relation(fields: [serviceId], references: [id])
+  location ServiceArea?  @relation(fields: [locationId], references: [id])
+  jobLead  QuoteRequest? @relation(fields: [jobLeadId], references: [id])
+}
+
+model GalleryPhoto {
+  id          String   @id @default(uuid())
+  serviceId   String?
+  locationId  String?
+  beforeUrl   String
+  afterUrl    String
+  caption     String?
+  order       Int      @default(0)
+  isPublished Boolean  @default(false)
+
+  service  Service?     @relation(fields: [serviceId], references: [id])
+  location ServiceArea? @relation(fields: [locationId], references: [id])
+}
+
+enum BlogStatus {
+  draft
+  published
+}
+
+model BlogPost {
+  id              String     @id @default(uuid())
+  slug            String     @unique
+  title           String
+  excerpt         String?
+  body            String
+  coverImage      String?
+  status          BlogStatus @default(draft)
+  publishDate     DateTime?
+  authorId        String
+  tags            String[]
+  metaTitle       String?
+  metaDescription String?
+  lastReviewedAt  DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  author AdminUser @relation(fields: [authorId], references: [id])
+}
+
+enum AdminRole {
+  owner
+  editor
+}
+
+model AdminUser {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String?
+  name         String
+  role         AdminRole @default(editor)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  leadNotes  LeadNote[]
+  blogPosts  BlogPost[]
+  auditLogs  AuditLog[]
+}
+
+enum AuditAction {
+  create
+  update
+  delete
+  publish
+  unpublish
+}
+
+model AuditLog {
+  id          String      @id @default(uuid())
+  adminUserId String
+  action      AuditAction
+  entityType  String
+  entityId    String
+  diff        Json?
+  createdAt   DateTime    @default(now())
+
+  adminUser AdminUser @relation(fields: [adminUserId], references: [id])
+}
+
+enum CallChannel {
+  gbp
+  ads
+  organic
+  direct_mail
+  referral
+}
+
+model CallTrackingNumber {
+  id              String      @id @default(uuid())
+  number          String
+  channel         CallChannel
+  forwardToNumber String
+  provider        String      @default("twilio")
+  isActive        Boolean     @default(true)
+}
+
+enum ConversionType {
+  form_submit
+  call_click
+  photo_upload_complete
+}
+
+model ConversionEvent {
+  id          String         @id @default(uuid())
+  type        ConversionType
+  leadId      String?
+  page        String
+  sessionId   String
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  createdAt   DateTime       @default(now())
+}
+
+model Experiment {
+  id         String   @id @default(uuid())
+  key        String   @unique
+  name       String
+  variants   Json
+  metricGoal String?
+  isActive   Boolean  @default(false)
+
+  assignments ExperimentAssignment[]
+}
+
+model ExperimentAssignment {
+  id           String @id @default(uuid())
+  experimentId String
+  visitorId    String
+  variant      String
+
+  experiment Experiment @relation(fields: [experimentId], references: [id])
+}
+
+enum ReviewRequestChannel {
+  sms
+  email
+}
+
+enum ReviewRequestStatus {
+  sent
+  delivered
+  clicked
+  completed
+}
+
+model ReviewRequest {
+  id              String               @id @default(uuid())
+  leadId          String               @unique
+  channel         ReviewRequestChannel
+  sentAt          DateTime?
+  status          ReviewRequestStatus  @default(sent)
+  reviewLinkToken String               @unique
+
+  lead QuoteRequest @relation(fields: [leadId], references: [id])
+}
+
+enum WebhookStatus {
+  success
+  fail
+}
+
+model WebhookLog {
+  id           String        @id @default(uuid())
+  leadId       String
+  destination  String
+  payload      Json
+  status       WebhookStatus
+  responseCode Int?
+  createdAt    DateTime      @default(now())
+
+  lead QuoteRequest @relation(fields: [leadId], references: [id])
+}
+
+model SiteSetting {
+  key   String @id
+  value Json
+}

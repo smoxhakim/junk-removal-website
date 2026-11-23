@@ -1,0 +1,39 @@
+# dependencies
+node_modules/
+
+# next.js build output
+.next/
+out/
+build/
+
+# typescript / next generated
+next-env.d.ts
+*.tsbuildinfo
+
+# prisma generated client (rebuilt by `prisma generate` / postinstall)
+src/generated/
+prisma/*.db
+
+# env files — every variant is ignored except the committed template
+.env
+.env.*
+!.env.example
+
+# keys / credentials
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
+service-account*.json
+
+# tests
+coverage/
+
+# vercel
+.vercel
+
+# misc
+.DS_Store
+*.log
+npm-debug.log*
