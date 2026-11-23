@@ -15,13 +15,16 @@ built per `PRD.md` and `ARCHITECTURE.md`. Progress is tracked in `TODO.md`.
 
 ## Structure
 ```
-prisma/schema.prisma      Data model (see ARCHITECTURE.md "Data model")
+prisma/schema.prisma      Data model — tables are added phase by phase (see ARCHITECTURE.md "Data model")
+prisma/migrations/        Prisma Migrate history (applied on Vercel by `vercel-build`)
 prisma.config.ts          Prisma CLI config (migration connection URL)
 src/app/                  Pages + route handlers (App Router)
 src/app/api/leads/        POST /api/leads — quote request intake (Phase 1, task 8)
 src/lib/                  Shared server utilities (Prisma client, validation schemas)
 src/generated/prisma/     Generated Prisma client (gitignored, built by `prisma generate`)
-tests/integration/        Tests that need a database (skipped without DATABASE_URL)
+tests/schema/             Schema/migration checks (no database needed)
+tests/integration/        Tests that need a database (skipped without DATABASE_URL;
+                          write tests run only against a local DB or ALLOW_DB_WRITE_TESTS=true)
 .github/workflows/ci.yml  CI: validate schema, migrate, typecheck, lint, test, build
 ```
 

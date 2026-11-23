@@ -8,7 +8,8 @@ See ARCHITECTURE.md for full detail per item. Check off as implemented.
   - [ ] Neon project connected (needs owner's Neon account — connection strings in `.env` / Vercel)
   - [ ] Vercel project wired (needs GitHub repo + Vercel account; Neon integration)
   - [ ] Custom domain + SSL (domain not chosen yet)
-- [ ] Core schema v1 (BusinessProfile, Service, ServiceArea, QuoteRequest, LeadPhoto)
+- [x] Core schema v1 (BusinessProfile, Service, ServiceArea, QuoteRequest, LeadPhoto)
+  - Migration `20261123201047_core_schema_v1` — applied to Postgres 17, catalog + 19 tests verified (2026-11-23)
 - [ ] Design system: layout, header/footer, sticky mobile call bar, base components
 - [ ] Homepage (hero, services overview, service-area summary, trust signals, CTA)
 - [ ] Service pages (4–6, process steps, pricing guidance, CTA)
