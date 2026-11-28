@@ -24,6 +24,13 @@ Why not a headless CMS (Sanity/Contentful)? It would work, but adds a second ser
 
 All tables include `id` (uuid, PK), `createdAt`, `updatedAt` unless noted.
 
+> **Schema v1 nullability (`prisma/schema.prisma`).** Besides the fields marked nullable below, schema v1 makes these nullable. Business information is never invented, so a row can exist before the owner fills these in:
+> - `BusinessProfile`: `licenseNumber`, `insuranceInfo`, `yearsInBusiness`
+> - `Service`: `pricingGuidance`, `heroImage`, `metaTitle`, `metaDescription`
+> - `ServiceArea`: `county`, `lat`, `lng`, `heroImage`, `introContent`, `localProofPoints`, `geoShape`, `metaTitle`, `metaDescription` (`introContent` must still be filled before a town page is published, Phase 2)
+>
+> `QuoteRequest.email`, `address` and `description` are also nullable: name, phone and ZIP are a lead's only required fields, and the quote form (Phase 1, task 8) decides what else is required.
+
 ### BusinessProfile
 Singleton-ish table (supports a second row if the business expands locations later).
 - `name`, `phone`, `email` string

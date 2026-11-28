@@ -39,11 +39,28 @@ tests/integration/        Tests that need a database (skipped without DATABASE_U
 3. `npm run prisma:migrate` to apply migrations to your development database.
 4. `npm run dev` → http://localhost:3000
 
+### Local Postgres (Docker)
+Alternative to a Neon branch for local development: a PostgreSQL 17 container on host
+port 5433 (5432 is left to other projects), with its data in a named volume. The port is
+bound to 127.0.0.1 only, so the database is not reachable from the network.
+
+```bash
+docker run -d --name junk-removal-postgres -p 127.0.0.1:5433:5432 \
+  -e POSTGRES_USER=junk -e POSTGRES_PASSWORD=junk_local_dev \
+  -e POSTGRES_DB=junk_removal -v junk-removal-pgdata:/var/lib/postgresql/data \
+  postgres:17
+```
+
+- In `.env`, set both `DATABASE_URL` and `DATABASE_URL_UNPOOLED` to
+  `postgresql://junk:junk_local_dev@127.0.0.1:5433/junk_removal`, then run `npx prisma migrate deploy`.
+- If the container exists but is stopped: `docker start junk-removal-postgres`.
+- With this local URL, `npm test` also runs the DB integration tests (they create and clean up their own rows).
+
 ## Scripts
 | Script | What it does |
 |---|---|
 | `npm run dev` | Dev server |
-| `npm run build` | `prisma generate` + production build (needs `DATABASE_URL`) |
+| `npm run build` | `prisma generate` + production build (`DATABASE_URL` is needed once pages read the database at build time) |
 | `npm run vercel-build` | Used by Vercel: generate + `prisma migrate deploy` + build |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint (Next.js core-web-vitals + TypeScript rules) |
