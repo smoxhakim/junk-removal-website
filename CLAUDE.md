@@ -26,10 +26,11 @@
 **TODO.md** is updated only when a task is verified, on that task's branch.
 
 **gstack** (installed globally at `~/.claude/skills/gstack`)
-- Allowed: `/plan-eng-review` (before large tasks), `/design-consultation` and `/plan-design-review` (design work), `/review` (before committing), `/qa-only` and `/browse` (checking pages in a real browser), `/investigate` (debugging).
-- Forbidden in this repo: `/ship` (both the built-in Claude Code command and the gstack skill), `/land-and-deploy`, `/setup-deploy`, `/canary`, and any skill or command that opens a PR, merges or deploys.
+- Allowed: `/plan-eng-review` (before large tasks), `/design-consultation` and `/plan-design-review` (design work), `/review` (before committing), `/qa-only` and `/browse` (checking pages in a real browser).
+- Forbidden in this repo: `/ship` (Claude Code built-in), `/gstack-ship` (gstack), `/land-and-deploy`, `/setup-deploy`, `/canary`, and any skill or command that opens a PR, merges or deploys.
 - `/qa` is not used because it commits fixes on its own; use `/qa-only` and report.
 - Any gstack skill not listed as Allowed is not used (this includes `/design-review`, which also commits fixes on its own).
+- gstack's skill-routing hook may suggest skills; a suggestion never overrides this allow-list.
 
 ## graphify
 
